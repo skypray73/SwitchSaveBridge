@@ -2,6 +2,12 @@
 
 繁體中文 Windows 存檔轉移工具，支援 DBI 解包的 Nintendo Switch 存檔與 Eden、Ryubing／Ryujinx 之間批次匯入／匯出。
 
+## 操作畫面
+
+![SwitchSaveBridge 1.6.6 操作介面](main-window.png)
+
+畫面使用「遊戲名稱1／user1／user2」等示範資料，並非真實存檔。
+
 ## 下載
 
 到 [Releases](https://github.com/skypray73/SwitchSaveBridge/releases) 下載 `SwitchSaveBridge-1.6.6-Portable.zip`，解壓縮後執行 EXE，無須安裝 Python。
@@ -15,6 +21,12 @@
 - 主機範本對照保留 DBI 的遊戲與使用者資料夾名稱。
 - 覆寫前完整備份、SHA-256 複製驗證與目錄替換失敗回復。
 - 自動讀寫 config.ini；匯出固定為 Switch 備份根目錄下的 export/批次時間。
+
+## Switch 主機端先備條件
+
+**Switch 主機需先以要使用的帳號執行該遊戲，並至少完成一次手動存檔或自動存檔**，再透過 DBI 讀取及備份。只有安裝遊戲或進入標題畫面，不一定已有可備份的存檔。若有多位使用者，請分別建立各自的存檔；Device 是全機共用資料。
+
+此要求適用於取得主機備份與建立回存範本。模擬器端不同：Eden 可由本工具在確認帳號及 Title ID 後建立目的地；Ryubing／Ryujinx 可右鍵開啟對應的存檔資料夾，不必先實際執行遊戲。
 
 ## 快速開始
 
