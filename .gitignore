@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+config.ini
+accounts.json
+templates.json
+Backups/
+atmosphere_save/
+export/
+*.exe
+*.zip

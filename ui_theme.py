@@ -1,0 +1,146 @@
+"""Shared visual system and main window layout."""
+import tkinter as tk
+from tkinter import ttk
+from app_version import VERSION
+
+FONT = 'Microsoft JhengHei UI'
+BG = '#edf2f7'
+INK = '#172b43'
+MUTED = '#64748b'
+BLUE = '#1765d1'
+
+
+def build_ui(app):
+    app.configure(bg=BG)
+    style = ttk.Style(app)
+    style.theme_use('clam')
+    style.configure('.', font=(FONT, 10), foreground=INK, background='white')
+    style.configure('TFrame', background='white')
+    style.configure('Page.TFrame', background=BG)
+    style.configure('TLabel', background='white', foreground=INK)
+    style.configure('Muted.TLabel', foreground=MUTED)
+    style.configure('Section.TLabel', font=(FONT, 11, 'bold'))
+    style.configure('TButton', padding=(12, 7), background='#f3f6fa', bordercolor='#d8e1ec', relief='flat', focusthickness=2, focuscolor='#a7caff')
+    style.map('TButton', background=[('pressed', '#dce8f8'), ('active', '#e8f0fb')], foreground=[('disabled', '#a0adbd')])
+    style.configure('Setting.TButton', font=(FONT, 10, 'bold'), background='#075e60', foreground='white', bordercolor='#075e60', padding=(14, 8), focuscolor='white')
+    style.map('Setting.TButton', background=[('disabled', '#c5d1d1'), ('pressed', '#033f41'), ('active', '#08777a')], foreground=[('disabled', '#667b7b'), ('active', 'white'), ('!disabled', 'white')])
+    style.configure('TEntry', padding=7, fieldbackground='#f8fafc', bordercolor='#d8e1ec', lightcolor='#d8e1ec', darkcolor='#d8e1ec')
+    style.configure('TCombobox', padding=6, fieldbackground='#f8fafc', background='#e9eff6', bordercolor='#d8e1ec', arrowsize=13)
+    style.map('TCombobox', fieldbackground=[('readonly', '#f8fafc'), ('disabled', '#edf1f5')], foreground=[('disabled', '#94a3b8')])
+    style.configure('Backend.TCombobox', padding=(10, 6), foreground='white', fieldbackground='#075e60', background='#075e60', bordercolor='#03494b', arrowcolor='white')
+    style.map('Backend.TCombobox', fieldbackground=[('readonly', '#075e60')], foreground=[('readonly', 'white')], selectbackground=[('readonly', '#075e60')], selectforeground=[('readonly', 'white')])
+    style.configure('Treeview', background='white', fieldbackground='white', rowheight=36, borderwidth=0, font=(FONT, 10))
+    style.configure('Treeview.Heading', background='#eaf0f7', foreground='#47607e', padding=(10, 10), font=(FONT, 10, 'bold'), relief='flat')
+    style.map('Treeview', background=[('selected', '#dceaff')], foreground=[('selected', '#123e79')])
+    style.map('Treeview.Heading', background=[('active', '#dae6f5')])
+    style.configure('Horizontal.TProgressbar', troughcolor='#e6edf5', background=BLUE, borderwidth=0, thickness=5)
+    style.configure('TScrollbar', background='#cad6e4', troughcolor='#f4f7fb', borderwidth=0, arrowsize=12)
+    app.option_add('*Toplevel.background', 'white')
+    app.option_add('*Listbox.background', 'white')
+    app.option_add('*Listbox.foreground', INK)
+    app.option_add('*Listbox.selectBackground', '#dceaff')
+    app.option_add('*Listbox.selectForeground', '#123e79')
+
+    app.columnconfigure(0, weight=1)
+    app.rowconfigure(3, weight=1)
+    header = tk.Frame(app, bg='#12263f', padx=24, pady=14)
+    header.grid(row=0, column=0, sticky='ew')
+    tk.Label(header, text='SAVE BRIDGE', bg='#12263f', fg='white', font=(FONT, 23, 'bold')).pack(side='left')
+    tk.Label(header, text='Switch  /  Eden  /  Ryubing', bg='#12263f', fg='#acc0dc', font=(FONT, 11)).pack(side='left', padx=20)
+    tk.Label(header, text=VERSION, bg='#234266', fg='#cde3ff', padx=10, pady=4, font=(FONT, 10, 'bold')).pack(side='right')
+
+    paths = ttk.Frame(app, padding=(18, 12))
+    paths.grid(row=1, column=0, sticky='ew', padx=16, pady=(12, 0))
+    paths.columnconfigure(1, weight=1)
+    path_heading = ttk.Frame(paths)
+    path_heading.grid(row=0, column=0, columnspan=3, sticky='w', pady=(0, 8))
+    ttk.Label(path_heading, text='01  來源與目的地', style='Section.TLabel').pack(side='left', padx=(0, 18))
+    app.backend_combo = ttk.Combobox(path_heading, textvariable=app.backend, values=['Eden', 'Ryubing'], state='readonly', width=12, font=(FONT, 11, 'bold'), style='Backend.TCombobox')
+    app.backend_combo.pack(side='left')
+    app.backend_combo.bind('<<ComboboxSelected>>', app.change_backend)
+    for row, (label, var) in enumerate([('Switch 備份', app.switch), ('模擬器存檔', app.emulator), ('匯出目的地', app.output)], 1):
+        ttk.Label(paths, text=label, width=13, style='Muted.TLabel').grid(row=row, column=0, sticky='w', pady=3)
+        ttk.Entry(paths, textvariable=var, state='readonly' if var is app.output else 'normal').grid(row=row, column=1, sticky='ew', pady=3, padx=(0, 8))
+        if var is not app.output:
+            ttk.Button(paths, text='選擇資料夾', style='Setting.TButton', command=lambda v=var: app.browse(v)).grid(row=row, column=2, sticky='ew', pady=3)
+        else:
+            ttk.Label(paths, text='隨備份位置更新', style='Muted.TLabel').grid(row=row, column=2)
+    app.backend_hint = tk.StringVar(value='Eden：選擇 nand 根目錄；Ryubing：選擇 bis/user/save。')
+    app.format_hint = tk.StringVar(value=app.format_description())
+
+    tools = ttk.Frame(app, padding=(18, 10))
+    tools.grid(row=2, column=0, sticky='ew', padx=16, pady=(10, 0))
+    tools.columnconfigure(0, weight=1)
+    flow = ttk.Frame(tools)
+    flow.grid(row=0, column=0, sticky='ew')
+    ttk.Label(flow, text='02  遊戲與轉移', style='Section.TLabel').pack(side='left', padx=(0, 14))
+    combo = ttk.Combobox(flow, textvariable=app.direction, values=['Switch → 模擬器', '模擬器 → Switch 備份'], state='readonly', width=24)
+    combo.pack(side='left')
+    combo.bind('<<ComboboxSelected>>', lambda e: app.scan())
+    ttk.Button(flow, text='重新掃描', command=app.scan).pack(side='left', padx=8)
+    ttk.Label(flow, text='Ryubing 副本', style='Muted.TLabel').pack(side='left', padx=(8, 4))
+    app.slot_choice = ttk.Combobox(flow, textvariable=app.slot, values=['0', '1'], state='disabled' if app.active_backend == 'Eden' else 'readonly', width=3)
+    app.slot_choice.pack(side='left')
+    app.slot_choice.bind('<<ComboboxSelected>>', lambda e: app.scan())
+    menu = tk.Menu(app, tearoff=False, font=(FONT, 10), bg='white', fg=INK, activebackground='#dceaff', activeforeground=INK)
+    for label, command in [('查看模擬器存檔清單', app.show_emulator_saves), ('查看備份／紀錄', app.open_backups), ('DBI 匯出教學', app.show_dbi_help), ('存檔類型／Ryubing 副本說明', app.show_help)]:
+        menu.add_command(label=label, command=command)
+    filters = ttk.Frame(tools)
+    filters.grid(row=1, column=0, sticky='ew', pady=(10, 0))
+    filters.columnconfigure(1, weight=1)
+    app.games_combo = ttk.Combobox(filters, textvariable=app.game_filter, values=['所有遊戲'], state='readonly', width=32)
+    app.games_combo.grid(row=0, column=0, padx=(0, 8))
+    app.games_combo.bind('<<ComboboxSelected>>', lambda e: app.filter_rows())
+    search_box = ttk.Frame(filters)
+    search_box.grid(row=0, column=1, sticky='ew')
+    search_box.columnconfigure(1, weight=1)
+    ttk.Label(search_box, text='名稱 / Title ID', style='Muted.TLabel').grid(row=0, column=0, padx=(0, 8))
+    ttk.Entry(search_box, textvariable=app.search).grid(row=0, column=1, sticky='ew')
+    app.search.trace_add('write', lambda *args: app.filter_rows())
+    ttk.Button(filters, text='重設', command=app.clear_filter).grid(row=0, column=2, padx=(8, 0))
+    pairing = ttk.Frame(tools)
+    pairing.grid(row=2, column=0, sticky='ew', pady=(8, 0))
+    style.configure('Tools.TMenubutton', font=(FONT, 10, 'bold'), foreground='white', background='#263e60', arrowcolor='white', padding=(12, 8))
+    style.map('Tools.TMenubutton', background=[('active', '#395a87')], foreground=[('active', 'white')])
+    more = ttk.Menubutton(pairing, text='工具與說明', menu=menu, direction='below', style='Tools.TMenubutton')
+    more.pack(side='left', padx=(0, 8))
+    for label, command in [('全選可轉移', app.select_ready), ('帳號對照', app.edit_accounts), ('手動配對', app.map_selected), ('主機範本對照', app.edit_template)]:
+        ttk.Button(pairing, text=label, command=command, style='TButton' if label == '全選可轉移' else 'Setting.TButton').pack(side='left', padx=(0, 8))
+
+    pane = ttk.Frame(app)
+    pane.grid(row=3, column=0, sticky='nsew', padx=16, pady=(10, 0))
+    pane.columnconfigure(0, weight=1)
+    pane.rowconfigure(0, weight=1)
+    app.tree = ttk.Treeview(pane, columns=('game', 'profile', 'target', 'status', 'region'), show='headings', selectmode='extended')
+    for key, title, width in [('game', '遊戲', 255), ('profile', '使用者 / 類型', 200), ('target', 'Title ID / 目的地', 170), ('status', '轉移狀態', 350), ('region', '區域', 100)]:
+        app.tree.heading(key, text=title)
+        app.tree.column(key, width=width, minwidth=80)
+    app.tree.grid(row=0, column=0, sticky='nsew')
+    sy = ttk.Scrollbar(pane, command=app.tree.yview)
+    sy.grid(row=0, column=1, sticky='ns')
+    sx = ttk.Scrollbar(pane, orient='horizontal', command=app.tree.xview)
+    sx.grid(row=1, column=0, sticky='ew')
+    app.tree.configure(yscrollcommand=sy.set, xscrollcommand=sx.set)
+    for tag, color in [('even', '#f7f9fc'), ('ready', '#18715a'), ('pending', '#92631b')]:
+        app.tree.tag_configure(tag, **({'background': color} if tag == 'even' else {'foreground': color}))
+
+    footer = ttk.Frame(app, padding=(18, 12))
+    footer.grid(row=4, column=0, sticky='ew', padx=16, pady=10)
+    footer.columnconfigure(1, weight=1)
+    app.start_button = tk.Button(footer, text='開始轉檔  →', command=app.execute, bg=BLUE, fg='white', activebackground='#0c4ca5', activeforeground='white', font=(FONT, 12, 'bold'), relief='flat', bd=0, padx=24, pady=11, cursor='hand2')
+    app.start_button.grid(row=0, column=0, rowspan=2, sticky='w', padx=(0, 20))
+    app.status = tk.StringVar(value='選擇備份資料夾，開始掃描存檔。')
+    status_label = ttk.Label(footer, textvariable=app.status, style='Muted.TLabel', wraplength=740)
+    status_label.grid(row=0, column=1, sticky='w')
+    footer.bind('<Configure>', lambda e: status_label.configure(wraplength=max(250, e.width - 300)))
+    app.progress = ttk.Progressbar(footer)
+    app.progress.grid(row=1, column=1, sticky='ew', pady=(6, 0))
+    logs = ttk.Frame(app, padding=(16, 0), style='Page.TFrame')
+    logs.grid(row=5, column=0, sticky='ew', pady=(0, 10))
+    app.log = tk.Text(logs, height=4, state='disabled', font=(FONT, 9), bg='#e6edf5', fg='#435b76', relief='flat', padx=10, pady=6, wrap='word')
+    def toggle_logs():
+        if app.log.winfo_manager():
+            app.log.pack_forget()
+        else:
+            app.log.pack(fill='x', pady=(5, 0))
+    ttk.Button(logs, text='作業紀錄  ▾', command=toggle_logs).pack(anchor='w')
